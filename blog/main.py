@@ -1,11 +1,15 @@
+from typing import List
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-from . import schemas, models
-from .database import engine, sessionLocal
+import schemas, models
+from database import engine, sessionLocal
 from sqlalchemy.orm import Session
+from hashing import Hash
+
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     db = sessionLocal()
@@ -15,7 +19,12 @@ def get_db():
         db.close()
     
 
-@app.post('/blog', status_code=status.HTTP_201_CREATED)
+@app.get('/bloglist',response_model=List[schemas.ShowBlog])
+def allBlogs(db: Session = Depends(get_db)):
+    blogs = db.query(models.Blog).all()
+    return blogs
+
+@app.post('/createblog', status_code=status.HTTP_201_CREATED)
 def createBlog(request:schemas.Blog, db: Session = Depends(get_db)):
     new_blog = models.Blog(title=request.title, body=request.body)
     db.add(new_blog)
@@ -23,12 +32,7 @@ def createBlog(request:schemas.Blog, db: Session = Depends(get_db)):
     db.refresh(new_blog)
     return new_blog
 
-@app.get('/bloglist')
-def allBlogs(db: Session = Depends(get_db)):
-    blogs = db.query(models.Blog).all()
-    return blogs
-
-@app.get('/blog/{id}')
+@app.get('/blog/{id}', response_model=schemas.ShowBlog)
 def blog(id:int,responce : Response, db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).filter(models.Blog.id==id).first()
     # if not blogs:
@@ -39,15 +43,34 @@ def blog(id:int,responce : Response, db: Session = Depends(get_db)):
         
     return blogs
 
-@app.delete('/blogdlt/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/removeblog/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delblog(id:int, db: Session = Depends(get_db)):
-    db.query(models.Blog).filter(models.Blog.id==id).delete(synchronize_session=False)
+    blog = db.query(models.Blog).filter(models.Blog.id==id)
+    if not blog.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Blog with {id} not found')
+    blog.delete(synchronize_session=False)
     db.commit()
     return 'Blog deleted successfully'
 
-@app.put('/updateblog', status_code=status.HTTP_202_ACCEPTED)
-async def updateBlog(id:int,request : schemas.Blog, db: Session = Depends(get_db)):
-    # db.query(models.Blog).filter(models.Blog.id==id).update({models.Blog.title:request.title, models.Blog.body:request.body})
-    db.query(models.Blog).filter(models.Blog.id==id).update(request)
+@app.put('/updateblog/{id}', status_code=status.HTTP_202_ACCEPTED)
+def updateBlog(id,request : schemas.Blog, db: Session = Depends(get_db)):
+    blog = db.query(models.Blog).filter(models.Blog.id==id)
+    # blog = db.query(models.Blog).filter(models.Blog.id==id)
+    if not blog.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Blog with {id} not found')
+    # blog.update(request)
+    blog.update({models.Blog.title:request.title, models.Blog.body:request.body})
     db.commit()
     return 'updated successfully'
+
+
+
+@app.post('/createuser', status_code=status.HTTP_201_CREATED, response_model=schemas.ShowUser)
+def createUser(request:schemas.User, db: Session = Depends(get_db)):
+
+    new_user = models.User(name=request.name, email= request.email, password = Hash.bcrypt(request.password))
+    # new_user = models.User(request)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
