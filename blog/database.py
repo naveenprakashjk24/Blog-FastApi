@@ -12,3 +12,10 @@ sessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
 
 #declearing orm method to mapping table
 Base= declarative_base()
+
+def get_db():
+    db = sessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
