@@ -2,19 +2,23 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from typing import List
 from sqlalchemy.orm import Session
 import schemas, models, database
+from blog.routers import oauth2
 
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/blog',
+    tags=['Blogs']
+)
 
 
 
 
-@router.get('/bloglist',response_model=List[schemas.BlogBase], tags=['blogs'])
-def allBlogs(db: Session = Depends(database.get_db)):
+@router.get('/list',response_model=List[schemas.BlogBase])
+def allBlogs(db: Session = Depends(database.get_db),get_current_user:schemas.User = Depends(oauth2.get_current_user)):
     blogs = db.query(models.Blog).all()
     return blogs
-@router.post('/createblog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
+@router.post('/create', status_code=status.HTTP_201_CREATED)
 def createBlog(request:schemas.Blog, db: Session = Depends(database.get_db)):
     new_blog = models.Blog(title=request.title, body=request.body, user_id=1)
     db.add(new_blog)
@@ -22,7 +26,7 @@ def createBlog(request:schemas.Blog, db: Session = Depends(database.get_db)):
     db.refresh(new_blog)
     return new_blog
 
-@router.get('/blog/{id}', response_model=schemas.ShowBlog, tags=['blogs'])
+@router.get('/{id}', response_model=schemas.ShowBlog)
 def blog(id:int, db: Session = Depends(database.get_db)):
     blogs = db.query(models.Blog).filter(models.Blog.id==id).first()
     # if not blogs:
@@ -33,7 +37,7 @@ def blog(id:int, db: Session = Depends(database.get_db)):
         
     return blogs
 
-@router.delete('/removeblog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
+@router.delete('/delete/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delblog(id:int, db: Session = Depends(database.get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id==id)
     if not blog.first():
@@ -42,7 +46,7 @@ def delblog(id:int, db: Session = Depends(database.get_db)):
     db.commit()
     return 'Blog deleted successfully'
 
-@router.put('/updateblog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
+@router.put('/update/{id}', status_code=status.HTTP_202_ACCEPTED)
 def updateBlog(id:int,request : schemas.Blog, db: Session = Depends(database.get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id==id)
     # blog = db.query(models.Blog).filter(models.Blog.id==id)
