@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer 
-from blog.routers import tokens
+from blog import tokens
 # import tokens
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
