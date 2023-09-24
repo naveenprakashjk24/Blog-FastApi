@@ -45,6 +45,18 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class Todo(BaseModel):
+    title : str
+    description :str
+    priority : int
+
+class showTodo(Todo):
+    completed : str
+    owner_id : ShowUser
+    
+    class Config():
+        from_attributes = True
+
 
 class TokenData(BaseModel):
     email: str | None = None
