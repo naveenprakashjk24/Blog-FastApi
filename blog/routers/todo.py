@@ -17,7 +17,7 @@ def allBlogs(db: Session = Depends(database.get_db),current_user:schemas.User = 
     return blogs
 
 @router.post('/create', status_code=status.HTTP_201_CREATED)
-def createBlog(request:schemas.Todo, db: Session = Depends(database.get_db), current_user:schemas.User = Depends(oauth2.get_current_user)):
+def createBlog(request:schemas.Todo, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     
     new_blog = models.Todo(title=request.title, description=request.description,priority = request.priority, user_id=current_user.get('id'))
     db.add(new_blog)
@@ -26,7 +26,7 @@ def createBlog(request:schemas.Todo, db: Session = Depends(database.get_db), cur
     return new_blog
 
 @router.get('/{id}', response_model=schemas.showTodo)
-def blog(id:int, db: Session = Depends(database.get_db), current_user:schemas.User = Depends(oauth2.get_current_user)):
+def blog(id:int, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     blogs = db.query(models.Todo).filter(models.Todo.id==id).first()
     # if not blogs:
     #     responce.status_code = status.HTTP_404_NOT_FOUND
@@ -37,7 +37,7 @@ def blog(id:int, db: Session = Depends(database.get_db), current_user:schemas.Us
     return blogs
 
 @router.delete('/delete/{id}', status_code=status.HTTP_204_NO_CONTENT)
-def delblog(id:int, db: Session = Depends(database.get_db), current_user:schemas.User = Depends(oauth2.get_current_user)):
+def delblog(id:int, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     blog = db.query(models.Todo).filter(models.Todo.id==id)
     if not blog.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Blog with {id} not found')
@@ -46,7 +46,7 @@ def delblog(id:int, db: Session = Depends(database.get_db), current_user:schemas
     return 'Blog deleted successfully'
 
 @router.put('/update/{id}', status_code=status.HTTP_202_ACCEPTED)
-def updateBlog(id:int,request : schemas.Todo, db: Session = Depends(database.get_db), current_user:schemas.User = Depends(oauth2.get_current_user)):
+def updateBlog(id:int,request : schemas.Todo, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     blog = db.query(models.Todo).filter(models.Todo.id==id)
     # blog = db.query(models.Blog).filter(models.Blog.id==id)
     if not blog.first():

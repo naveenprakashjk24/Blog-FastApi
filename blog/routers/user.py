@@ -20,7 +20,7 @@ def createUser(request:schemas.User, db: Session = Depends(database.get_db)):
     db.refresh(new_user)
     return new_user
 
-@router.get('/{id}', response_model=schemas.ShowBlogUser)
+@router.get('/{id}', response_model=schemas.ShowUserBlog)
 def user(id:int, db: Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:

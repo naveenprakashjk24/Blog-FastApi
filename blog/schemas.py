@@ -6,6 +6,7 @@ class Blog(BaseModel):
     body: str
 
 class BlogBase(Blog):
+    id: int
     title: str
     body: str
     class Config():
@@ -15,27 +16,33 @@ class User(BaseModel):
     name: str
     email: str
     password : str
-    
-class ShowUser(BaseModel):
+
+class UserBase(User):
     name: str
     email: str
     class Config():
-        from_attributes = True  
+        from_attributes = True
     
-class ShowBlogUser(BaseModel):
+class ShowUser(BaseModel):
+    id :int
+    name: str
+    email: str
+    class Config():
+        from_attributes = True 
+    
+class ShowUserBlog(BaseModel):
     name: str
     email: str
     blogs : List[BlogBase]
     class Config():
-        from_attributes = True    
-        
-class ShowBlog(BaseModel):
+        from_attributes = True
+
+class ShowBlogUser(BaseModel):
     title: str
     body: str
     creator : ShowUser
-    
     class Config():
-        from_attributes = True
+        from_attributes = True    
         
 class Login(BaseModel):
     username: str
