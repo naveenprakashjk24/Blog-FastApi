@@ -16,7 +16,7 @@ def allBlogs(db: Session = Depends(database.get_db),current_user:schemas.ShowUse
     blogs = db.query(models.Blog).all()
     return blogs
 
-@router.post('/create', status_code=status.HTTP_201_CREATED)
+@router.post('/create', status_code=status.HTTP_201_CREATED, response_model=schemas.BlogBase)
 def createBlog(request:schemas.Blog, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
 
     new_blog = models.Blog(title=request.title, body=request.body, user_id=current_user.get('id'))
@@ -25,7 +25,7 @@ def createBlog(request:schemas.Blog, db: Session = Depends(database.get_db), cur
     db.refresh(new_blog)
     return new_blog
 
-@router.get('/{id}', response_model=schemas.ShowUserBlog)
+@router.get('/{id}', response_model=schemas.ShowBlogUser)
 def blog(id:int, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     blogs = db.query(models.Blog).filter(models.Blog.id==id).first()
     # if not blogs:

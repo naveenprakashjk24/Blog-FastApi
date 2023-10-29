@@ -24,7 +24,6 @@ class UserBase(User):
         from_attributes = True
     
 class ShowUser(BaseModel):
-    id :int
     name: str
     email: str
     class Config():
@@ -57,13 +56,13 @@ class Todo(BaseModel):
     description :str
     priority : int
 
-class showTodo(Todo):
-    completed : str
-    owner_id : ShowUser
-    
-    class Config():
+class showTodo(BaseModel):
+    title : str
+    description :str
+    priority : int
+    completed : bool
+    class config():
         from_attributes = True
-
 
 class TokenData(BaseModel):
     email: str | None = None
