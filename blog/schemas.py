@@ -56,11 +56,19 @@ class Todo(BaseModel):
     description :str
     priority : int
 
-class showTodo(BaseModel):
+class UpdateTodo(BaseModel):
     title : str
     description :str
     priority : int
     completed : bool
+
+class showTodo(BaseModel):
+    id : int
+    title : str
+    description :str
+    priority : int
+    completed : bool
+    owner : ShowUser
     class config():
         from_attributes = True
 
