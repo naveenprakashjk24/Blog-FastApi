@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from typing import List
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, text
+from sqlalchemy import and_
 import schemas, models, database
 from blog import oauth2
 
@@ -36,17 +36,14 @@ def todo(id:int, db: Session = Depends(database.get_db), current_user:schemas.Sh
 
 @router.delete('/delete/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delTodo(id:int, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
-    if current_user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Authentication failed')
     
-    # todo_model = db.query(models.Todo).filter(models.Todo.id == id).filter(models.Todo.owner == current_user.get('id'))
-    todo_model = db.query(models.Todo).filter(and_(models.Todo.id==id, models.Todo.user_id== current_user.get('id'))).first()
-    print(todo_model)
+        
+    todo = db.query(models.Todo).filter(and_(models.Todo.id==id, models.Todo.user_id== current_user.get('id')))
+    todo_data = db.query(models.Todo).filter(models.Todo.id==id).first()
+    if todo.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= f"User don't have the permission to delete the {todo_data.title}")
     
-    if todo_model is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= 'Todo not found or No Todo for this user')
-    
-    db.query(models.Todo).filter(models.Todo.id == id).delete(synchronize_session=False)
+    todo.delete(synchronize_session=False)
     db.commit()
     return 'Todo deleted successfully'
 

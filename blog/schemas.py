@@ -37,6 +37,7 @@ class ShowUserBlog(BaseModel):
         from_attributes = True
 
 class ShowBlogUser(BaseModel):
+    id: int
     title: str
     body: str
     creator : ShowUser
@@ -71,6 +72,3 @@ class showTodo(BaseModel):
     owner : ShowUser
     class config():
         from_attributes = True
-
-class TokenData(BaseModel):
-    email: str | None = None

@@ -11,7 +11,7 @@ router = APIRouter(
     tags=['Blogs']
 )
 
-@router.get('/list',response_model=List[schemas.BlogBase])
+@router.get('/list',response_model=List[schemas.ShowBlogUser])
 def allBlogs(db: Session = Depends(database.get_db),current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     blogs = db.query(models.Blog).all()
     return blogs
@@ -28,9 +28,6 @@ def createBlog(request:schemas.Blog, db: Session = Depends(database.get_db), cur
 @router.get('/{id}', response_model=schemas.ShowBlogUser)
 def blog(id:int, db: Session = Depends(database.get_db), current_user:schemas.ShowUser = Depends(oauth2.get_current_user)):
     blogs = db.query(models.Blog).filter(models.Blog.id==id).first()
-    # if not blogs:
-    #     responce.status_code = status.HTTP_404_NOT_FOUND
-    #     return {'details':f"Blog with the id {id} is not available"}
     if not blogs:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Blog with the id {id} is not available")
         
@@ -41,6 +38,9 @@ def delblog(id:int, db: Session = Depends(database.get_db), current_user:schemas
     blog = db.query(models.Blog).filter(models.Blog.id==id)
     if not blog.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Blog with {id} not found')
+    
+    db.query(models.Todo).filter(and_(models.Todo.id==id, models.Todo.user_id== current_user.get('id'))).delete(synchronize_session=False)
+    
     blog.delete(synchronize_session=False)
     db.commit()
     return 'Blog deleted successfully'

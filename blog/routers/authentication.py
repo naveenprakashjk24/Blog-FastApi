@@ -22,4 +22,4 @@ def login(request:OAuth2PasswordRequestForm = Depends(), db: Session = Depends(d
     access_token = tokens.create_access_token(
         data={"sub": user.email, "id":user.id}
     )
-    return {"access_token": access_token, "token_type": "bearer", "user":user}
+    return {"access_token": access_token, "token_type": "bearer"}
